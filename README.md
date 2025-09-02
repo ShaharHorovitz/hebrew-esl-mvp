@@ -36,7 +36,6 @@ src/
     ```bash
    npm install
     # or
-    ```bash
     yarn install
 3. Run the app:
     ```bash
