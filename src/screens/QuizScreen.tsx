@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/RootNavigator';
@@ -14,15 +14,18 @@ const QuizScreen: React.FC = () => {
   
   const loadItems = useSessionStore((s) => s.loadItems);
   const startSession = useSessionStore((s) => s.startSession);
-  const currentItem = useSessionStore((s) => s.currentItem);
   const answer = useSessionStore((s) => s.answer);
   const awardXp = useSessionStore((s) => s.awardXp);
   const endSession = useSessionStore((s) => s.endSession);
-  const sessionProgress = useSessionStore((s) => s.sessionProgress);
   const sessionAccuracy = useSessionStore((s) => s.sessionAccuracy);
   const sessionAverageLatency = useSessionStore((s) => s.sessionAverageLatency);
-  const isSessionActive = useSessionStore((s) => s.isSessionActive);
   const items = useSessionStore((s) => s.items);
+  const sessionQueue = useSessionStore((s) => s.sessionQueue);
+  
+  // Local state for quiz progression
+  const [current, setCurrent] = useState(0);
+  const [finished, setFinished] = useState(false);
+  const answering = useRef(false);
 
   useEffect(() => {
     // Load items if not already loaded
@@ -34,26 +37,44 @@ const QuizScreen: React.FC = () => {
     startSession(params?.topicId as Topic | undefined, 12);
   }, [params?.topicId, items.length, loadItems, startSession]);
 
-  const sessionItem = currentItem();
+  // Derive current question from session queue
+  const total = sessionQueue?.items.length || 0;
+  const item = sessionQueue?.items[current]?.item;
 
   const distractors = useMemo(() => {
-    if (!sessionItem) return [];
-    return chooseDistractors(sessionItem.item, items, 3);
-  }, [sessionItem, items]);
+    if (!item) return [];
+    return chooseDistractors(item, items, 3);
+  }, [item, items]);
+
+  const advance = () => {
+    if (current + 1 < total) {
+      setCurrent((i) => i + 1);
+    } else {
+      setFinished(true);
+    }
+  };
 
   const handleAnswer = ({ isCorrect, latencyMs }: { isCorrect: boolean; latencyMs: number }) => {
-    if (sessionItem) {
-      // Update SRS stats first
-      answer(sessionItem.item.id, isCorrect, latencyMs);
-      
-      // Award XP for gamification
-      awardXp({
-        isCorrect,
-        latencyMs,
-        topic: sessionItem.item.topic,
-        itemId: sessionItem.item.id,
-      });
-    }
+    if (answering.current || !item) return;
+    
+    answering.current = true;
+    
+    // Update SRS stats first
+    answer(item.id, isCorrect, latencyMs);
+    
+    // Award XP for gamification
+    awardXp({
+      isCorrect,
+      latencyMs,
+      topic: item.topic,
+      itemId: item.id,
+    });
+    
+    // Short feedback delay then advance
+    setTimeout(() => {
+      answering.current = false;
+      advance();
+    }, 350);
   };
 
   const handleEndSession = () => {
@@ -61,9 +82,8 @@ const QuizScreen: React.FC = () => {
     navigation.goBack();
   };
 
-  // Show session summary when complete
-  if (!isSessionActive()) {
-    const progress = sessionProgress();
+  // Show session summary when finished
+  if (finished) {
     const accuracy = sessionAccuracy();
     const avgLatency = sessionAverageLatency();
     
@@ -75,7 +95,7 @@ const QuizScreen: React.FC = () => {
         <View style={styles.statsContainer}>
           <Text style={styles.stat}>דיוק: {accuracy}%</Text>
           <Text style={styles.stat}>זמן ממוצע: {avgLatency}ms</Text>
-          <Text style={styles.stat}>שאלות: {progress.current}/{progress.total}</Text>
+          <Text style={styles.stat}>שאלות: {total}/{total}</Text>
         </View>
         
         <Pressable style={styles.button} onPress={handleEndSession}>
@@ -85,7 +105,7 @@ const QuizScreen: React.FC = () => {
     );
   }
 
-  if (!sessionItem) {
+  if (!item || !sessionQueue) {
     return (
       <View style={styles.container}> 
         <Text style={styles.title}>טוען...</Text>
@@ -93,17 +113,16 @@ const QuizScreen: React.FC = () => {
     );
   }
 
-  const progress = sessionProgress();
-
   return (
     <View style={styles.container}> 
       <View style={styles.header}>
-        <Text style={styles.progressText}>שאלה {progress.current + 1} מתוך {progress.total}</Text>
-        <Text style={styles.topicText}>{sessionItem.item.topic}</Text>
+        <Text style={styles.progressText}>שאלה {current + 1} מתוך {total}</Text>
+        <Text style={styles.topicText}>{item.topic}</Text>
       </View>
       
       <QuizCard
-        item={sessionItem.item}
+        key={`${item.id}-${current}`}
+        item={item}
         distractors={distractors}
         onAnswer={handleAnswer}
       />

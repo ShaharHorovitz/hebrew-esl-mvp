@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect } from 'react';
 import { View, Text, StyleSheet, Pressable } from 'react-native';
 import * as Speech from 'expo-speech';
 import type { VocabItem } from '../features/vocab/types';
@@ -12,6 +12,14 @@ type Props = {
 const QuizCard: React.FC<Props> = ({ item, onAnswer, distractors }) => {
   const startRef = useRef<number>(Date.now());
   const [selected, setSelected] = useState<string | null>(null);
+  const [disabled, setDisabled] = useState(false);
+
+  // Reset disabled state on remount (when item changes)
+  useEffect(() => {
+    setDisabled(false);
+    setSelected(null);
+    startRef.current = Date.now();
+  }, [item.hebrew]);
 
   const options = useMemo(() => {
     const opts = [item.english, ...distractors].slice(0, 4);
@@ -31,11 +39,21 @@ const QuizCard: React.FC<Props> = ({ item, onAnswer, distractors }) => {
   };
 
   const handleSelect = (opt: string) => {
-    if (selected) return;
-    const latency = Date.now() - startRef.current;
-    const correct = opt === item.english;
+    if (disabled) return;
+    
+    setDisabled(true);
     setSelected(opt);
-    onAnswer({ isCorrect: correct, latencyMs: latency });
+    
+    const latencyMs = Date.now() - startRef.current;
+    const isCorrect = opt === item.english;
+    
+    // Call onAnswer immediately
+    onAnswer({ isCorrect, latencyMs });
+    
+    // Optionally speak the selected option (don't await)
+    if (isCorrect) {
+      Speech.speak(opt, { language: 'en-US', rate: 0.95 });
+    }
   };
 
   return (
@@ -56,7 +74,12 @@ const QuizCard: React.FC<Props> = ({ item, onAnswer, distractors }) => {
               : '#fca5a5'
             : '#f3f4f6';
           return (
-            <Pressable key={opt} style={[styles.option, { backgroundColor: bg }]} onPress={() => handleSelect(opt)}>
+            <Pressable 
+              key={opt} 
+              style={[styles.option, { backgroundColor: bg }]} 
+              onPress={() => handleSelect(opt)}
+              disabled={disabled}
+            >
               <Text style={styles.optionText}>{opt}</Text>
             </Pressable>
           );
