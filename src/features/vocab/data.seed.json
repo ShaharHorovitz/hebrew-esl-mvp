@@ -1,0 +1,219 @@
+[
+  {
+    "id": "n1", "topic": "numbers", "level": "A1", "hebrew": "אפס", "english": "zero", "example": "The temperature is zero degrees"
+  },
+  {
+    "id": "n2", "topic": "numbers", "level": "A1", "hebrew": "אחת", "english": "one", "example": "I have one apple"
+  },
+  {
+    "id": "n3", "topic": "numbers", "level": "A1", "hebrew": "שתיים", "english": "two", "example": "I have two cats"
+  },
+  {
+    "id": "n4", "topic": "numbers", "level": "A1", "hebrew": "שלוש", "english": "three", "example": "There are three people here"
+  },
+  {
+    "id": "n5", "topic": "numbers", "level": "A1", "hebrew": "ארבע", "english": "four", "example": "The table has four legs"
+  },
+  {
+    "id": "n6", "topic": "numbers", "level": "A1", "hebrew": "חמש", "english": "five", "example": "I need five minutes"
+  },
+  {
+    "id": "n7", "topic": "numbers", "level": "A1", "hebrew": "שש", "english": "six", "example": "The clock shows six o'clock"
+  },
+  {
+    "id": "n8", "topic": "numbers", "level": "A1", "hebrew": "שבע", "english": "seven", "example": "There are seven days in a week"
+  },
+  {
+    "id": "n9", "topic": "numbers", "level": "A1", "hebrew": "שמונה", "english": "eight", "example": "The spider has eight legs"
+  },
+  {
+    "id": "n10", "topic": "numbers", "level": "A1", "hebrew": "תשע", "english": "nine", "example": "I am nine years old"
+  },
+  {
+    "id": "n11", "topic": "numbers", "level": "A1", "hebrew": "עשר", "english": "ten", "example": "I have ten fingers"
+  },
+  {
+    "id": "n12", "topic": "numbers", "level": "A1", "hebrew": "עשרים", "english": "twenty", "example": "I am twenty years old"
+  },
+  {
+    "id": "n13", "topic": "numbers", "level": "A1", "hebrew": "מאה", "english": "hundred", "example": "There are one hundred students"
+  },
+  {
+    "id": "c1", "topic": "colors", "level": "A1", "hebrew": "אדום", "english": "red", "example": "The apple is red"
+  },
+  {
+    "id": "c2", "topic": "colors", "level": "A1", "hebrew": "כחול", "english": "blue", "example": "The sky is blue"
+  },
+  {
+    "id": "c3", "topic": "colors", "level": "A1", "hebrew": "ירוק", "english": "green", "example": "The grass is green"
+  },
+  {
+    "id": "c4", "topic": "colors", "level": "A1", "hebrew": "צהוב", "english": "yellow", "example": "The sun is yellow"
+  },
+  {
+    "id": "c5", "topic": "colors", "level": "A1", "hebrew": "שחור", "english": "black", "example": "The night is black"
+  },
+  {
+    "id": "c6", "topic": "colors", "level": "A1", "hebrew": "לבן", "english": "white", "example": "The snow is white"
+  },
+  {
+    "id": "c7", "topic": "colors", "level": "A1", "hebrew": "כתום", "english": "orange", "example": "The carrot is orange"
+  },
+  {
+    "id": "c8", "topic": "colors", "level": "A1", "hebrew": "סגול", "english": "purple", "example": "The grape is purple"
+  },
+  {
+    "id": "c9", "topic": "colors", "level": "A1", "hebrew": "חום", "english": "brown", "example": "The tree is brown"
+  },
+  {
+    "id": "c10", "topic": "colors", "level": "A1", "hebrew": "ורוד", "english": "pink", "example": "The flower is pink"
+  },
+  {
+    "id": "c11", "topic": "colors", "level": "A2", "hebrew": "אפור", "english": "gray", "example": "The cloud is gray"
+  },
+  {
+    "id": "c12", "topic": "colors", "level": "A2", "hebrew": "זהב", "english": "gold", "example": "The ring is gold"
+  },
+  {
+    "id": "w1", "topic": "weekdays", "level": "A1", "hebrew": "ראשון", "english": "Sunday", "example": "Sunday is the first day of the week"
+  },
+  {
+    "id": "w2", "topic": "weekdays", "level": "A1", "hebrew": "שני", "english": "Monday", "example": "Monday is the first day of work"
+  },
+  {
+    "id": "w3", "topic": "weekdays", "level": "A1", "hebrew": "שלישי", "english": "Tuesday", "example": "Tuesday is the second day of work"
+  },
+  {
+    "id": "w4", "topic": "weekdays", "level": "A1", "hebrew": "רביעי", "english": "Wednesday", "example": "Wednesday is the middle of the week"
+  },
+  {
+    "id": "w5", "topic": "weekdays", "level": "A1", "hebrew": "חמישי", "english": "Thursday", "example": "Thursday is almost the weekend"
+  },
+  {
+    "id": "w6", "topic": "weekdays", "level": "A1", "hebrew": "שישי", "english": "Friday", "example": "Friday is the last day of work"
+  },
+  {
+    "id": "w7", "topic": "weekdays", "level": "A1", "hebrew": "שבת", "english": "Saturday", "example": "Saturday is the day of rest"
+  },
+  {
+    "id": "s1", "topic": "seasons", "level": "A1", "hebrew": "אביב", "english": "spring", "example": "Spring is the season of flowers"
+  },
+  {
+    "id": "s2", "topic": "seasons", "level": "A1", "hebrew": "קיץ", "english": "summer", "example": "Summer is hot and sunny"
+  },
+  {
+    "id": "s3", "topic": "seasons", "level": "A1", "hebrew": "סתיו", "english": "autumn", "example": "Autumn is the season of falling leaves"
+  },
+  {
+    "id": "s4", "topic": "seasons", "level": "A1", "hebrew": "חורף", "english": "winter", "example": "Winter is cold and snowy"
+  },
+  {
+    "id": "v1", "topic": "verbs", "level": "A2", "hebrew": "ללכת", "english": "to walk", "example": "I like to walk in the park"
+  },
+  {
+    "id": "v2", "topic": "verbs", "level": "A2", "hebrew": "לרוץ", "english": "to run", "example": "I run every morning"
+  },
+  {
+    "id": "v3", "topic": "verbs", "level": "A2", "hebrew": "לאכול", "english": "to eat", "example": "I eat breakfast at 8 AM"
+  },
+  {
+    "id": "v4", "topic": "verbs", "level": "A2", "hebrew": "לשתות", "english": "to drink", "example": "I drink water every day"
+  },
+  {
+    "id": "v5", "topic": "verbs", "level": "A2", "hebrew": "לישון", "english": "to sleep", "example": "I sleep eight hours every night"
+  },
+  {
+    "id": "v6", "topic": "verbs", "level": "A2", "hebrew": "לראות", "english": "to see", "example": "I can see the mountains"
+  },
+  {
+    "id": "v7", "topic": "verbs", "level": "A2", "hebrew": "לשמוע", "english": "to hear", "example": "I can hear the music"
+  },
+  {
+    "id": "v8", "topic": "verbs", "level": "A2", "hebrew": "לדבר", "english": "to speak", "example": "I speak Hebrew and English"
+  },
+  {
+    "id": "v9", "topic": "verbs", "level": "A2", "hebrew": "לקרוא", "english": "to read", "example": "I read books every day"
+  },
+  {
+    "id": "v10", "topic": "verbs", "level": "A2", "hebrew": "לכתוב", "english": "to write", "example": "I write in my journal"
+  },
+  {
+    "id": "v11", "topic": "verbs", "level": "A2", "hebrew": "ללמוד", "english": "to learn", "example": "I learn new things every day"
+  },
+  {
+    "id": "v12", "topic": "verbs", "level": "A2", "hebrew": "לעבוד", "english": "to work", "example": "I work in an office"
+  },
+  {
+    "id": "v13", "topic": "verbs", "level": "A2", "hebrew": "לחשוב", "english": "to think", "example": "I think about the future"
+  },
+  {
+    "id": "v14", "topic": "verbs", "level": "A2", "hebrew": "להבין", "english": "to understand", "example": "I understand the lesson"
+  },
+  {
+    "id": "v15", "topic": "verbs", "level": "A2", "hebrew": "לרצות", "english": "to want", "example": "I want to travel"
+  },
+  {
+    "id": "v16", "topic": "verbs", "level": "A2", "hebrew": "לאהוב", "english": "to love", "example": "I love my family"
+  },
+  {
+    "id": "p1", "topic": "phrases", "level": "A2", "hebrew": "שלום", "english": "hello", "example": "Hello, how are you?"
+  },
+  {
+    "id": "p2", "topic": "phrases", "level": "A2", "hebrew": "תודה", "english": "thank you", "example": "Thank you very much"
+  },
+  {
+    "id": "p3", "topic": "phrases", "level": "A2", "hebrew": "בבקשה", "english": "please", "example": "Please sit down"
+  },
+  {
+    "id": "p4", "topic": "phrases", "level": "A2", "hebrew": "סליחה", "english": "sorry", "example": "Sorry, I'm late"
+  },
+  {
+    "id": "p5", "topic": "phrases", "level": "A2", "hebrew": "להתראות", "english": "goodbye", "example": "Goodbye, see you tomorrow"
+  },
+  {
+    "id": "p6", "topic": "phrases", "level": "A2", "hebrew": "בוקר טוב", "english": "good morning", "example": "Good morning, how are you?"
+  },
+  {
+    "id": "p7", "topic": "phrases", "level": "A2", "hebrew": "ערב טוב", "english": "good evening", "example": "Good evening, welcome"
+  },
+  {
+    "id": "p8", "topic": "phrases", "level": "A2", "hebrew": "לילה טוב", "english": "good night", "example": "Good night, sleep well"
+  },
+  {
+    "id": "p9", "topic": "phrases", "level": "A2", "hebrew": "מה שלומך", "english": "how are you", "example": "How are you today?"
+  },
+  {
+    "id": "p10", "topic": "phrases", "level": "A2", "hebrew": "טוב מאוד", "english": "very good", "example": "I'm very good, thank you"
+  },
+  {
+    "id": "p11", "topic": "phrases", "level": "A2", "hebrew": "אני לא מבין", "english": "I don't understand", "example": "I don't understand this word"
+  },
+  {
+    "id": "p12", "topic": "phrases", "level": "A2", "hebrew": "אני לא יודע", "english": "I don't know", "example": "I don't know the answer"
+  },
+  {
+    "id": "p13", "topic": "phrases", "level": "A2", "hebrew": "איפה", "english": "where", "example": "Where is the bathroom?"
+  },
+  {
+    "id": "p14", "topic": "phrases", "level": "A2", "hebrew": "מה זה", "english": "what is this", "example": "What is this called?"
+  },
+  {
+    "id": "p15", "topic": "phrases", "level": "A2", "hebrew": "אני רוצה", "english": "I want", "example": "I want to learn Hebrew"
+  },
+  {
+    "id": "p16", "topic": "phrases", "level": "A2", "hebrew": "אני יכול", "english": "I can", "example": "I can help you"
+  },
+  {
+    "id": "p17", "topic": "phrases", "level": "A2", "hebrew": "אני צריך", "english": "I need", "example": "I need some water"
+  },
+  {
+    "id": "p18", "topic": "phrases", "level": "A2", "hebrew": "אני אוהב", "english": "I like", "example": "I like this food"
+  },
+  {
+    "id": "p19", "topic": "phrases", "level": "A2", "hebrew": "אני חושב", "english": "I think", "example": "I think it's good"
+  },
+  {
+    "id": "p20", "topic": "phrases", "level": "A2", "hebrew": "אני יודע", "english": "I know", "example": "I know the answer"
+  }
+]
+

@@ -1,0 +1,11 @@
+[
+  { "id": "b1", "topicId": "basics", "hebrew": "שלום", "english": "hello", "example": "hello, how are you" },
+  { "id": "b2", "topicId": "basics", "hebrew": "תודה", "english": "thank you", "example": "thank you very much" },
+  { "id": "b3", "topicId": "basics", "hebrew": "בבקשה", "english": "please", "example": "please sit down" },
+  { "id": "f1", "topicId": "food", "hebrew": "מים", "english": "water", "example": "a glass of water" },
+  { "id": "f2", "topicId": "food", "hebrew": "לחם", "english": "bread", "example": "fresh bread" },
+  { "id": "t1", "topicId": "travel", "hebrew": "רכבת", "english": "train", "example": "the train arrives at noon" },
+  { "id": "t2", "topicId": "travel", "hebrew": "כרטיס", "english": "ticket", "example": "a ticket to Tel Aviv" }
+]
+
+
