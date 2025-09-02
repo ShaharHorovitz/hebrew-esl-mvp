@@ -31,10 +31,9 @@ const QuizCard: React.FC<Props> = ({ item, onAnswer, distractors }) => {
   }, [item.english, distractors]);
 
   const handleSpeak = () => {
-    if (item.example) {
-      Speech.speak(item.example, { language: 'en-US', rate: 0.95 });
-    } else {
-      Speech.speak(item.english, { language: 'en-US', rate: 0.95 });
+    const ttsText = item.hebrew ?? (item as any).promptEn ?? item.example ?? '';
+    if (ttsText) {
+      Speech.speak(ttsText, { language: 'en-US', rate: 0.95 });
     }
   };
 
@@ -56,14 +55,22 @@ const QuizCard: React.FC<Props> = ({ item, onAnswer, distractors }) => {
     }
   };
 
+  const prompt =
+    item.hebrew?.trim?.() ||
+    item.example?.trim?.() ||
+    (item as any).promptEn?.trim?.() ||
+    (item as any).promptHe?.trim?.() ||
+    (item as any).question?.trim?.() ||
+    '';
+  
   return (
     <View style={styles.container}>
-      <Text style={styles.prompt}>{item.hebrew}</Text>
+      <Text style={styles.prompt}>{prompt}</Text>
       <Pressable style={styles.ttsBtn} onPress={handleSpeak} accessibilityRole="button">
         <Text style={styles.ttsText}>השמעה</Text>
       </Pressable>
       <View style={styles.options}>
-        {options.map((opt) => {
+        {options.map((opt, idx) => {
           const isCorrect = opt === item.english;
           const isSelected = selected === opt;
           const bg = !selected
@@ -75,7 +82,7 @@ const QuizCard: React.FC<Props> = ({ item, onAnswer, distractors }) => {
             : '#f3f4f6';
           return (
             <Pressable 
-              key={opt} 
+              key={`${item.id}-opt-${idx}`} 
               style={[styles.option, { backgroundColor: bg }]} 
               onPress={() => handleSelect(opt)}
               disabled={disabled}

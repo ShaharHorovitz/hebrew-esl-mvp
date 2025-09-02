@@ -212,6 +212,18 @@ const QuizScreen: React.FC = () => {
       );
     }
 
+    // Guard against empty prompt
+    const hasPrompt = levelItem.promptHe?.trim() || levelItem.promptEn?.trim() || (levelItem as any).question?.trim();
+    if (!hasPrompt) {
+      console.warn(`Item ${levelItem.id} has no prompt, skipping to next`);
+      advance();
+      return (
+        <View style={styles.container}> 
+          <Text style={styles.title}>טוען...</Text>
+        </View>
+      );
+    }
+
     const level = levels[params.levelId!];
     const currentIndex = levelQueue.currentIndex;
 
