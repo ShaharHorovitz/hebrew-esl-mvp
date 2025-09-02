@@ -29,7 +29,7 @@ const TopicsScreen: React.FC<Props> = ({ navigation }) => {
     return (
       <Pressable
         style={[styles.row, isLocked && styles.lockedRow]}
-        onPress={() => !isLocked && navigation.navigate('Quiz', { topicId: item.id })}
+        onPress={() => !isLocked && navigation.navigate('LevelSelect', { topic: item.id })}
         accessibilityRole="button"
         disabled={isLocked}
       >

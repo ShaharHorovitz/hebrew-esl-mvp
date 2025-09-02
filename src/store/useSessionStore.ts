@@ -5,9 +5,11 @@ import { debounce } from 'lodash';
 import type { VocabItem, ItemStats, PlayerProgress, Topic } from '../features/vocab/types';
 import type { SessionQueue, SessionItem } from '../features/adaptive/session';
 import { loadVocab, getVocabByTopic } from '../features/vocab/repo';
-import { buildSessionQueue, getNextItem, advanceQueue, isSessionComplete } from '../features/adaptive/session';
+import { buildSessionQueue, getNextItem, advanceQueue, isSessionComplete, buildLevelSession, advanceLevelQueue, isLevelSessionComplete } from '../features/adaptive/session';
+import type { LevelSessionQueue } from '../features/adaptive/session';
 import { updateSRS, difficultyFrom, initialStatsFor } from '../features/adaptive/srs';
 import { BASIC_TOPICS, ADVANCED_TOPICS } from '../features/vocab/topics';
+import type { TopicLevelDef, LevelProgress } from '../features/levels/types';
 
 interface SessionState {
   // Data
@@ -15,13 +17,22 @@ interface SessionState {
   statsMap: Record<string, ItemStats>;
   sessionQueue: SessionQueue | null;
   progress: PlayerProgress;
+  levels: Record<string, TopicLevelDef>;
+  levelProgress: Record<string, LevelProgress>;
+  levelQueue: LevelSessionQueue | null;
+  levelLoading: boolean;
+  levelError: string | null;
   
   // Actions
   loadItems: () => void;
   startSession: (topic?: string, size?: number) => void;
+  startLevel: (levelId: string) => void;
   answer: (itemId: string, isCorrect: boolean, latencyMs: number) => void;
   awardXp: (params: { isCorrect: boolean; latencyMs: number; topic: Topic; itemId: string }) => void;
   endSession: () => void;
+  registerLevels: (levels: TopicLevelDef[]) => void;
+  markLevelResult: (levelId: string, accuracy: number) => void;
+  advanceLevel: () => void;
   
   // Computed
   currentItem: () => SessionItem | null;
@@ -30,6 +41,8 @@ interface SessionState {
   sessionAverageLatency: () => number;
   isSessionActive: () => boolean;
   getNextLevelXp: () => number;
+  getLevelsForTopic: (topic: Topic) => TopicLevelDef[];
+  isLevelUnlocked: (levelId: string) => boolean;
 }
 
 // Debounced persist function
@@ -78,6 +91,11 @@ export const useSessionStore = create<SessionState>()(
       statsMap: {},
       sessionQueue: null,
       progress: createDefaultProgress(),
+      levels: {},
+      levelProgress: {},
+      levelQueue: null,
+      levelLoading: false,
+      levelError: null,
 
       loadItems: () => {
         try {
@@ -174,7 +192,69 @@ export const useSessionStore = create<SessionState>()(
       },
 
       endSession: () => {
-        set({ sessionQueue: null });
+        set({ sessionQueue: null, levelQueue: null, levelLoading: false, levelError: null });
+      },
+
+      startLevel: (levelId: string) => {
+        const { levels, items, statsMap } = get();
+        const level = levels[levelId];
+        
+        if (!level) {
+          set({ levelError: 'Level not found', levelLoading: false });
+          return;
+        }
+        
+        set({ levelLoading: true, levelQueue: null, levelError: null });
+        
+        try {
+          const levelQueue = buildLevelSession(level, items, statsMap);
+          set({ levelQueue, levelLoading: false });
+        } catch (error) {
+          set({ 
+            levelError: error instanceof Error ? error.message : 'Failed to load level', 
+            levelLoading: false 
+          });
+        }
+      },
+
+      advanceLevel: () => {
+        const { levelQueue } = get();
+        if (levelQueue && !isLevelSessionComplete(levelQueue)) {
+          const newQueue = advanceLevelQueue(levelQueue);
+          set({ levelQueue: newQueue });
+        }
+      },
+
+      registerLevels: (levels: TopicLevelDef[]) => {
+        const { levels: existingLevels } = get();
+        const newLevels = { ...existingLevels };
+        levels.forEach(level => {
+          newLevels[level.id] = level;
+        });
+        set({ levels: newLevels });
+      },
+
+      markLevelResult: (levelId: string, accuracy: number) => {
+        const { levelProgress } = get();
+        const current = levelProgress[levelId] || { completed: false, accuracy: 0, attempts: 0 };
+        
+        const newAttempts = current.attempts + 1;
+        const newAccuracy = Math.round((current.accuracy * current.attempts + accuracy) / newAttempts);
+        const completed = newAccuracy >= 80 && newAttempts >= 10;
+        
+        const newProgress = {
+          ...levelProgress,
+          [levelId]: {
+            completed,
+            accuracy: newAccuracy,
+            attempts: newAttempts,
+          },
+        };
+        
+        set({ levelProgress: newProgress });
+        
+        // Debounced persist
+        debouncedPersist(AsyncStorage, 'level-progress', newProgress);
       },
 
       currentItem: () => {
@@ -246,6 +326,33 @@ export const useSessionStore = create<SessionState>()(
         const { progress } = get();
         return 100 + progress.level * 50;
       },
+
+      getLevelsForTopic: (topic: Topic) => {
+        const { levels } = get();
+        return Object.values(levels).filter(level => level.topic === topic);
+      },
+
+      isLevelUnlocked: (levelId: string) => {
+        const { levels, levelProgress } = get();
+        const level = levels[levelId];
+        if (!level) return false;
+        
+        // First level is always unlocked
+        const topicLevels = Object.values(levels).filter(l => l.topic === level.topic);
+        const sortedLevels = topicLevels.sort((a, b) => a.id.localeCompare(b.id));
+        const isFirstLevel = sortedLevels[0]?.id === levelId;
+        
+        if (isFirstLevel) return true;
+        
+        // Check if previous level is completed
+        const currentIndex = sortedLevels.findIndex(l => l.id === levelId);
+        if (currentIndex <= 0) return false;
+        
+        const previousLevel = sortedLevels[currentIndex - 1];
+        const previousProgress = levelProgress[previousLevel.id];
+        
+        return previousProgress?.completed === true;
+      },
     }),
     {
       name: 'session-store',
@@ -254,6 +361,11 @@ export const useSessionStore = create<SessionState>()(
         statsMap: state.statsMap,
         items: state.items,
         progress: state.progress,
+        levels: state.levels,
+        levelProgress: state.levelProgress,
+        levelQueue: state.levelQueue,
+        levelLoading: state.levelLoading,
+        levelError: state.levelError,
       }),
       onRehydrateStorage: () => (state) => {
         // Migrate progress on app boot

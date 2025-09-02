@@ -1,5 +1,7 @@
 import type { VocabItem, ItemStats } from '../vocab/types';
+import type { TopicLevelDef, QuestionItem } from '../levels/types';
 import { isDue } from './srs';
+import { buildNumbersItems } from '../levels/numbers';
 
 export interface SessionItem {
   item: VocabItem;
@@ -8,6 +10,12 @@ export interface SessionItem {
 
 export interface SessionQueue {
   items: SessionItem[];
+  currentIndex: number;
+  size: number;
+}
+
+export interface LevelSessionQueue {
+  items: QuestionItem[];
   currentIndex: number;
   size: number;
 }
@@ -130,5 +138,60 @@ export const advanceQueue = (queue: SessionQueue): SessionQueue => {
 };
 
 export const isSessionComplete = (queue: SessionQueue): boolean => {
+  return queue.currentIndex >= queue.items.length;
+};
+
+export const buildLevelSession = (
+  level: TopicLevelDef,
+  _allItems: VocabItem[],
+  _statsMap: Record<string, ItemStats>
+): LevelSessionQueue => {
+  const size = level.size || 12;
+  
+  if (level.kind === 'flashcards') {
+    // Use existing vocab items for flashcards
+    const questionItems = buildNumbersItems('flashcards');
+    if (questionItems.length === 0) {
+      throw new Error('No flashcards available for this level');
+    }
+    return {
+      items: questionItems.slice(0, size),
+      currentIndex: 0,
+      size,
+    };
+  }
+  
+  if (level.kind === 'math') {
+    // Use math problems
+    const questionItems = buildNumbersItems('math');
+    if (questionItems.length === 0) {
+      throw new Error('No math problems available for this level');
+    }
+    return {
+      items: questionItems.slice(0, size),
+      currentIndex: 0,
+      size,
+    };
+  }
+  
+  // For other kinds (reverse, fill-blank), return empty for now
+  throw new Error(`Level kind '${level.kind}' not implemented yet`);
+};
+
+export const getNextLevelItem = (queue?: LevelSessionQueue | null): QuestionItem | null => {
+  if (!queue || !queue.items || queue.items.length === 0) return null;
+  if (queue.currentIndex >= queue.items.length) return null;
+  return queue.items[queue.currentIndex];
+};
+
+export const advanceLevelQueue = (queue: LevelSessionQueue): LevelSessionQueue => {
+  return {
+    ...queue,
+    currentIndex: Math.min(queue.currentIndex + 1, queue.items.length)
+  };
+};
+
+export const isLevelSessionComplete = (queue?: LevelSessionQueue | null): boolean => {
+  if (!queue || !queue.items) return true;
   return queue.currentIndex >= queue.items.length;
 };
