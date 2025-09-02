@@ -33,6 +33,11 @@ const QuizScreen: React.FC = () => {
   const [current, setCurrent] = useState(0);
   const [finished, setFinished] = useState(false);
   const answering = useRef(false);
+  
+  // Level mode tracking
+  const [levelCorrect, setLevelCorrect] = useState(0);
+  const [levelTotal, setLevelTotal] = useState(0);
+  const [latencySum, setLatencySum] = useState(0);
 
   useEffect(() => {
     // Load items if not already loaded
@@ -44,6 +49,10 @@ const QuizScreen: React.FC = () => {
     if (params?.levelId) {
       // Level-based session
       startLevel(params.levelId);
+      // Reset level tracking
+      setLevelCorrect(0);
+      setLevelTotal(0);
+      setLatencySum(0);
     } else if (params?.topicId) {
       // Topic-based session (legacy)
       startSession(params.topicId, 12);
@@ -93,7 +102,11 @@ const QuizScreen: React.FC = () => {
     answering.current = true;
     
     if (isLevelMode && levelItem) {
-      // Level mode: just track for level completion
+      // Level mode: track results and award XP
+      setLevelTotal(t => t + 1);
+      if (isCorrect) setLevelCorrect(c => c + 1);
+      setLatencySum(s => s + latencyMs);
+      
       // Award XP for gamification
       const level = levels[params.levelId!];
       if (level) {
@@ -126,9 +139,9 @@ const QuizScreen: React.FC = () => {
 
   const handleEndSession = () => {
     if (isLevelMode && params?.levelId) {
-      // Mark level result
-      const accuracy = sessionAccuracy();
-      markLevelResult(params.levelId, accuracy);
+      // Compute real accuracy from level tracking
+      const acc = levelTotal ? Math.round((levelCorrect / levelTotal) * 100) : 0;
+      markLevelResult(params.levelId, acc);
     }
     
     endSession();
@@ -137,8 +150,13 @@ const QuizScreen: React.FC = () => {
 
   // Show session summary when finished
   if (finished) {
-    const accuracy = sessionAccuracy();
-    const avgLatency = sessionAverageLatency();
+    // Use real session results for level mode, fallback to store for topic mode
+    const accuracy = isLevelMode 
+      ? (levelTotal ? Math.round((levelCorrect / levelTotal) * 100) : 0)
+      : sessionAccuracy();
+    const avgLatency = isLevelMode 
+      ? (levelTotal ? Math.round(latencySum / levelTotal) : 0)
+      : sessionAverageLatency();
     
     return (
       <View style={styles.container}>
@@ -148,7 +166,7 @@ const QuizScreen: React.FC = () => {
         <View style={styles.statsContainer}>
           <Text style={styles.stat}>דיוק: {accuracy}%</Text>
           <Text style={styles.stat}>זמן ממוצע: {avgLatency}ms</Text>
-          <Text style={styles.stat}>שאלות: {total}/{total}</Text>
+          <Text style={styles.stat}>שאלות: {isLevelMode ? levelTotal : total}/{total}</Text>
         </View>
         
         <Pressable style={styles.button} onPress={handleEndSession}>

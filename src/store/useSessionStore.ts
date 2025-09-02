@@ -240,7 +240,8 @@ export const useSessionStore = create<SessionState>()(
         
         const newAttempts = current.attempts + 1;
         const newAccuracy = Math.round((current.accuracy * current.attempts + accuracy) / newAttempts);
-        const completed = newAccuracy >= 80 && newAttempts >= 10;
+        // Complete if accuracy >= 80% and at least 10 questions answered
+        const completed = accuracy >= 80 && newAttempts >= 1; // Allow completion on first attempt if good enough
         
         const newProgress = {
           ...levelProgress,

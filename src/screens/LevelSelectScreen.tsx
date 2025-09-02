@@ -54,7 +54,7 @@ const LevelSelectScreen: React.FC<Props> = ({ navigation, route }) => {
             </Text>
           )}
           
-          {progress && (
+          {progress && progress.attempts > 0 && (
             <Text style={styles.progressText}>
               דיוק: {progress.accuracy}% ({progress.attempts} ניסיונות)
             </Text>

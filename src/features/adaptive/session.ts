@@ -3,6 +3,15 @@ import type { TopicLevelDef, QuestionItem } from '../levels/types';
 import { isDue } from './srs';
 import { buildNumbersItems } from '../levels/numbers';
 
+export const shuffle = <T,>(arr: T[]): T[] => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
+
 export interface SessionItem {
   item: VocabItem;
   stats: ItemStats;
@@ -154,8 +163,15 @@ export const buildLevelSession = (
     if (questionItems.length === 0) {
       throw new Error('No flashcards available for this level');
     }
+    
+    // Shuffle questions and options for this session
+    const shuffledItems = shuffle(questionItems).slice(0, size).map(item => ({
+      ...item,
+      options: item.options ? shuffle(item.options) : undefined,
+    }));
+    
     return {
-      items: questionItems.slice(0, size),
+      items: shuffledItems,
       currentIndex: 0,
       size,
     };
@@ -167,8 +183,15 @@ export const buildLevelSession = (
     if (questionItems.length === 0) {
       throw new Error('No math problems available for this level');
     }
+    
+    // Shuffle questions and options for this session
+    const shuffledItems = shuffle(questionItems).slice(0, size).map(item => ({
+      ...item,
+      options: item.options ? shuffle(item.options) : undefined,
+    }));
+    
     return {
-      items: questionItems.slice(0, size),
+      items: shuffledItems,
       currentIndex: 0,
       size,
     };
