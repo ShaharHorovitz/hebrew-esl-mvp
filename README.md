@@ -33,10 +33,13 @@ src/
    git clone https://github.com/ShaharHorovitz/hebrew-esl-mvp.git
    cd hebrew-esl-mvp
 2. Install dependencies:
+    ```bash
    npm install
     # or
+    ```bash
     yarn install
 3. Run the app:
+    ```bash
     npx expo start
 
 ## Tech Stack
