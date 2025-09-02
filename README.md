@@ -32,12 +32,14 @@ src/
    ```bash
    git clone https://github.com/ShaharHorovitz/hebrew-esl-mvp.git
    cd hebrew-esl-mvp
+2. Install dependencies:
    npm install
-# or
-yarn install
-npx expo start
+    # or
+    yarn install
+3. Run the app:
+    npx expo start
 
-Tech Stack
+## Tech Stack
 
 React Native
  + Expo
@@ -50,12 +52,12 @@ Zustand
 AsyncStorage
  (persistent progress)
 
- Author
+ ## Author
 
 Developed by Shahar Horovitz.
 Hebrew-first ESL learning MVP for effective English learning.
 
-License
+## License
 
 This project is currently private (no license).
 If you’d like to contribute or use it, please contact the author.
