@@ -6,6 +6,8 @@ export interface QuestionItem {
   promptEn?: string;     // English prompt if relevant
   answer: string;        // canonical correct answer (string)
   options?: string[];    // multiple choice options when applicable
+  ttsPrompt?: string;    // text to speak on play button
+  ttsOnCorrect?: string; // text to speak on correct answer
   meta?: Record<string, any>;
 }
 

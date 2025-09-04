@@ -6,12 +6,13 @@ import LevelSelectScreen from '../screens/LevelSelectScreen';
 import QuizScreen from '../screens/QuizScreen';
 import ProgressScreen from '../screens/ProgressScreen';
 import type { Topic } from '../features/vocab/types';
+import type { LevelType } from '../features/levels/registry';
 
 export type RootStackParamList = {
   Auth: undefined;
   Topics: undefined;
   LevelSelect: { topic: Topic };
-  Quiz: { topicId?: Topic; levelId?: string } | undefined;
+  Quiz: { topicId: Topic; levelId: string; levelType: LevelType } | undefined;
   Progress: undefined;
 };
 

@@ -1,10 +1,11 @@
 import React from 'react';
-import { View, Text, StyleSheet, FlatList, Pressable } from 'react-native';
+import { View, Text, StyleSheet, FlatList, Pressable, Alert } from 'react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import type { Topic } from '../features/vocab/types';
 import { useSessionStore } from '../store/useSessionStore';
 import { isAdvancedTopic } from '../features/vocab/topics';
+import { seedDevProgress } from '../dev/reset';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Topics'>;
 
@@ -58,6 +59,23 @@ const TopicsScreen: React.FC<Props> = ({ navigation }) => {
       <Pressable style={styles.progressBtn} onPress={() => navigation.navigate('Progress')}>
         <Text style={styles.progressText}>התקדמות</Text>
       </Pressable>
+      
+      {/* Dev button for seeding progress */}
+      {__DEV__ && (
+        <Pressable 
+          style={styles.devButton} 
+          onLongPress={async () => { 
+            try {
+              await seedDevProgress(); 
+              Alert.alert('Seeded', 'Dev progress seeded successfully');
+            } catch {
+              Alert.alert('Error', 'Failed to seed progress');
+            }
+          }}
+        >
+          <Text style={styles.devButtonText}>dev</Text>
+        </Pressable>
+      )}
     </View>
   );
 };
@@ -98,6 +116,18 @@ const styles = StyleSheet.create({
     color: '#ef4444',
     textAlign: 'right',
     marginTop: 2,
+  },
+  devButton: {
+    position: 'absolute',
+    top: 16,
+    left: 16,
+    padding: 8,
+    backgroundColor: 'rgba(0,0,0,0.1)',
+    borderRadius: 4,
+  },
+  devButtonText: {
+    fontSize: 12,
+    color: 'rgba(0,0,0,0.3)',
   },
   progressBtn: {
     position: 'absolute',

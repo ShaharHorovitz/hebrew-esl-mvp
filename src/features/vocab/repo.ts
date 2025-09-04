@@ -36,6 +36,10 @@ export const getVocabByTopic = (topic?: string): VocabItem[] => {
   return allItems.filter(item => item.topic === topic);
 };
 
+export const getItemsByTopic = (topicId: string): VocabItem[] => {
+  return getVocabByTopic(topicId);
+};
+
 export const getVocabByLevel = (level?: string): VocabItem[] => {
   const allItems = loadVocab();
   if (!level) return allItems;

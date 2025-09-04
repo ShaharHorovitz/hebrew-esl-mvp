@@ -1,31 +1,53 @@
 import type { TopicLevelDef, QuestionItem, LevelKind } from './types';
 import { getVocabByTopic } from '../vocab/repo';
-import { chooseDistractors, shuffle } from '../adaptive/session';
+import { chooseDistractors } from '../adaptive/session';
 
 const NUM_WORDS = ['zero','one','two','three','four','five','six','seven','eight','nine','ten'];
-const unique = <T,>(a: T[]): T[] => Array.from(new Set(a));
 
-function mcqOptions(answer: string, count = 4): string[] {
-  const pool = NUM_WORDS.filter(w => w !== answer);
-  const picks = shuffle(pool).slice(0, count - 1);
-  const merged = unique([answer, ...picks]);
-  while (merged.length < count) {
-    const extra = pool.find(w => !merged.includes(w));
-    if (!extra) break;
-    merged.push(extra);
+const shuffle = <T,>(a: T[]): T[] => {
+  const x = [...a];
+  for (let i = x.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [x[i], x[j]] = [x[j], x[i]];
   }
-  return shuffle(merged);
+  return x;
+};
+
+const uniq = <T,>(a: T[]): T[] => Array.from(new Set(a));
+
+const countOf = <T,>(a: T[], v: T): number => a.reduce((n, x) => n + (x === v ? 1 : 0), 0);
+
+export function buildMCQOptions(answer: string, count = 4): string[] {
+  const pool = NUM_WORDS.filter(w => w !== answer);
+  let opts = [answer, ...shuffle(pool).slice(0, count - 1)];
+  opts = uniq(opts);
+  if (!opts.includes(answer)) opts.unshift(answer);
+  while (countOf(opts, answer) > 1) opts.splice(opts.lastIndexOf(answer), 1);
+  for (const cand of shuffle(pool)) {
+    if (opts.length >= count) break;
+    if (!opts.includes(cand)) opts.push(cand);
+  }
+  return shuffle(opts.slice(0, count));
 }
 
 function make(op: '+'|'-', a: number, b: number): QuestionItem {
   const expr = `${NUM_WORDS[a]} ${op === '+' ? '+' : '-'} ${NUM_WORDS[b]} =`;
   const val = op === '+' ? a + b : a - b;
   const ans = NUM_WORDS[val];
+  const options = buildMCQOptions(ans, 4);
+  
+  // Safety logging for MCQ integrity
+  if (__DEV__) {
+    if (!options.includes(ans) || countOf(options, ans) !== 1) {
+      console.warn('MCQ integrity failed', { id: `math-${a}${op}${b}`, answer: ans, options });
+    }
+  }
+  
   return {
     id: `math-${a}${op}${b}`,
     promptEn: expr,
     answer: ans,
-    options: mcqOptions(ans, 4),
+    options,
     meta: { type: 'math' },
   };
 }

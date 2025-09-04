@@ -4,20 +4,33 @@ import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../navigation/RootNavigator';
 import type { Topic } from '../features/vocab/types';
 import { useSessionStore } from '../store/useSessionStore';
+import { topicLevels, type LevelType } from '../features/levels/registry';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'LevelSelect'>;
 
 const LevelSelectScreen: React.FC<Props> = ({ navigation, route }) => {
   const { topic } = route.params;
-  const getLevelsForTopic = useSessionStore((s) => s.getLevelsForTopic);
   const isLevelUnlocked = useSessionStore((s) => s.isLevelUnlocked);
   const levelProgress = useSessionStore((s) => s.levelProgress);
   
-  const levels = getLevelsForTopic(topic);
+  // Dev unlock flag
+  const DEV_UNLOCK_ALL = __DEV__ && true;
   
-  const renderLevelItem = ({ item }: { item: any }) => {
+  // Get levels from registry
+  const levels = topicLevels[topic] || [];
+  
+  const onStartLevel = (lvl: { id: string; type: LevelType }) => {
+    navigation.navigate('Quiz', { 
+      topicId: topic, 
+      levelId: lvl.id, 
+      levelType: lvl.type 
+    });
+  };
+
+  const renderLevelItem = ({ item }: { item: { id: string; type: LevelType; title: string; subtitle?: string } }) => {
     const progress = levelProgress[item.id];
-    const isUnlocked = isLevelUnlocked(item.id);
+    const isUnlockedReal = isLevelUnlocked(item.id);
+    const isUnlocked = DEV_UNLOCK_ALL ? true : isUnlockedReal;
     const isCompleted = progress?.completed === true;
     
     let statusText = 'פתוח';
@@ -34,23 +47,23 @@ const LevelSelectScreen: React.FC<Props> = ({ navigation, route }) => {
     return (
       <Pressable
         style={[styles.levelRow, !isUnlocked && styles.lockedRow]}
-        onPress={() => isUnlocked && navigation.navigate('Quiz', { levelId: item.id })}
+        onPress={() => isUnlocked && onStartLevel(item)}
         accessibilityRole="button"
         disabled={!isUnlocked}
       >
         <View style={styles.levelContent}>
           <View style={styles.levelHeader}>
             <Text style={[styles.levelTitle, !isUnlocked && styles.lockedText]}>
-              {item.titleHe}
+              {item.title}
             </Text>
             <View style={[styles.statusPill, { backgroundColor: statusColor }]}>
               <Text style={styles.statusText}>{statusText}</Text>
             </View>
           </View>
           
-          {item.descriptionHe && (
+          {item.subtitle && (
             <Text style={[styles.levelDescription, !isUnlocked && styles.lockedText]}>
-              {item.descriptionHe}
+              {item.subtitle}
             </Text>
           )}
           

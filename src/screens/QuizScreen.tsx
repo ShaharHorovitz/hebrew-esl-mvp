@@ -1,16 +1,26 @@
-import React, { useEffect, useMemo, useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { View, Text, StyleSheet, Pressable, ActivityIndicator } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import type { RootStackParamList } from '../navigation/RootNavigator';
 
 import { useSessionStore } from '../store/useSessionStore';
 import QuizCard from '../components/QuizCard';
-import { chooseDistractors, getNextLevelItem } from '../features/adaptive/session';
+import { getNextLevelItem } from '../features/adaptive/session';
+import { getLevelDef, getDefaultLevel, type LevelType, type TopicId } from '../features/levels/registry';
+import { getItemsByTopic } from '../features/vocab/repo';
 
 const QuizScreen: React.FC = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const params = (route.params ?? {}) as RootStackParamList['Quiz'];
+  const { topicId, levelId, levelType } = (params || {}) as Partial<{ topicId: TopicId; levelId: string; levelType: LevelType }>;
+  
+  // Resolve level definition with fallback
+  let levelDef = levelId ? getLevelDef(topicId as TopicId, levelId) : undefined;
+  if (!levelDef) {
+    console.warn('Level not found; falling back to default', { topicId, levelId, levelType });
+    levelDef = getDefaultLevel(topicId as TopicId);
+  }
   
   const loadItems = useSessionStore((s) => s.loadItems);
   const startSession = useSessionStore((s) => s.startSession);
@@ -27,7 +37,7 @@ const QuizScreen: React.FC = () => {
   const levelQueue = useSessionStore((s) => s.levelQueue);
   const levelLoading = useSessionStore((s) => s.levelLoading);
   const levelError = useSessionStore((s) => s.levelError);
-  const levels = useSessionStore((s) => s.levels);
+
   
   // Local state for quiz progression
   const [current, setCurrent] = useState(0);
@@ -45,22 +55,35 @@ const QuizScreen: React.FC = () => {
       loadItems();
     }
     
-    // Start session based on params
-    if (params?.levelId) {
-      // Level-based session
-      startLevel(params.levelId);
-      // Reset level tracking
-      setLevelCorrect(0);
-      setLevelTotal(0);
-      setLatencySum(0);
-    } else if (params?.topicId) {
-      // Topic-based session (legacy)
-      startSession(params.topicId, 12);
+    // Start session based on level definition
+    if (levelDef) {
+      if (levelDef.type === 'flashcards') {
+        // Build flashcards session using topic items
+        const topicItems = getItemsByTopic(topicId as TopicId);
+        if (topicItems.length > 0) {
+          startSession(topicId as TopicId, 12);
+        }
+      } else if (levelDef.type === 'math') {
+        // Math session - assert topicId === 'numbers'
+        if (topicId === 'numbers') {
+          startLevel(levelDef.id);
+          // Reset level tracking
+          setLevelCorrect(0);
+          setLevelTotal(0);
+          setLatencySum(0);
+        } else {
+          console.warn('Math level requested for non-numbers topic, falling back to flashcards');
+          const topicItems = getItemsByTopic(topicId as TopicId);
+          if (topicItems.length > 0) {
+            startSession(topicId as TopicId, 12);
+          }
+        }
+      }
     }
-  }, [params?.topicId, params?.levelId, items.length, loadItems, startSession, startLevel]);
+  }, [levelDef, topicId, items.length, loadItems, startLevel, startSession]);
 
   // Derive current question from session queue
-  const isLevelMode = !!params?.levelId;
+  const isLevelMode = levelDef?.type === 'math';
   const total = isLevelMode 
     ? (levelQueue?.items.length || 0)
     : (sessionQueue?.items.length || 0);
@@ -68,15 +91,7 @@ const QuizScreen: React.FC = () => {
   const levelItem = isLevelMode ? getNextLevelItem(levelQueue) : null;
   const vocabItem = !isLevelMode ? sessionQueue?.items[current]?.item : null;
 
-  const distractors = useMemo(() => {
-    if (isLevelMode && levelItem) {
-      return levelItem.options || [];
-    }
-    if (!isLevelMode && vocabItem) {
-      return chooseDistractors(vocabItem, items, 3);
-    }
-    return [];
-  }, [isLevelMode, levelItem, vocabItem, items]);
+  // Options are now built into the items, no need for separate distractors
 
   const advance = () => {
     if (isLevelMode) {
@@ -108,12 +123,11 @@ const QuizScreen: React.FC = () => {
       setLatencySum(s => s + latencyMs);
       
       // Award XP for gamification
-      const level = levels[params.levelId!];
-      if (level) {
+      if (levelDef) {
         awardXp({
           isCorrect,
           latencyMs,
-          topic: level.topic,
+          topic: topicId as TopicId,
           itemId: levelItem.id,
         });
       }
@@ -224,27 +238,29 @@ const QuizScreen: React.FC = () => {
       );
     }
 
-    const level = levels[params.levelId!];
     const currentIndex = levelQueue.currentIndex;
 
     return (
       <View style={styles.container}> 
         <View style={styles.header}>
           <Text style={styles.progressText}>שאלה {currentIndex + 1} מתוך {total}</Text>
-          <Text style={styles.topicText}>{level?.titleHe}</Text>
+          <Text style={styles.topicText}>{levelDef?.title}</Text>
         </View>
         
         <QuizCard
           key={`${levelItem.id}-${currentIndex}`}
           item={{
             id: levelItem.id,
-            topic: level?.topic || 'numbers',
+            topic: topicId as TopicId,
             level: 'A1',
             hebrew: levelItem.promptHe || '',
             english: levelItem.answer,
             example: levelItem.promptEn || levelItem.answer,
+            options: levelItem.options || [],
+            ttsPrompt: levelItem.ttsPrompt,
+            ttsOnCorrect: levelItem.ttsOnCorrect,
           }}
-          distractors={distractors}
+          levelType={levelDef?.type || 'flashcards'}
           onAnswer={handleAnswer}
         />
       </View>
@@ -268,8 +284,13 @@ const QuizScreen: React.FC = () => {
       
       <QuizCard
         key={`${vocabItem.id}-${current}`}
-        item={vocabItem}
-        distractors={distractors}
+        item={{
+          ...vocabItem,
+          options: vocabItem.options || [],
+          ttsPrompt: vocabItem.ttsPrompt,
+          ttsOnCorrect: vocabItem.ttsOnCorrect,
+        }}
+        levelType={levelDef?.type || 'flashcards'}
         onAnswer={handleAnswer}
       />
     </View>

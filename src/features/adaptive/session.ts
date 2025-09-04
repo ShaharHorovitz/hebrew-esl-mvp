@@ -2,6 +2,8 @@ import type { VocabItem, ItemStats } from '../vocab/types';
 import type { TopicLevelDef, QuestionItem } from '../levels/types';
 import { isDue } from './srs';
 import { buildNumbersItems } from '../levels/numbers';
+import { buildMathItems } from '../levels/math';
+import { buildChoices } from './choices';
 
 export const shuffle = <T,>(arr: T[]): T[] => {
   const a = [...arr];
@@ -28,6 +30,39 @@ export interface LevelSessionQueue {
   currentIndex: number;
   size: number;
 }
+
+export interface QuizItem {
+  id: string;
+  promptHe: string;
+  promptEn?: string;
+  answer: string;
+  options: string[];
+  ttsPrompt?: string;
+  ttsOnCorrect?: string;
+  topic: string;
+  level: string;
+}
+
+export const buildQuizItem = (item: VocabItem, allItems: VocabItem[]): QuizItem => {
+  // Build options pool from all items in the same topic
+  const topicItems = allItems.filter(i => i.topic === item.topic);
+  const pool = topicItems.map(i => i.english).filter(Boolean);
+  
+  // Create options with choice builder
+  const options = buildChoices(item.english, pool, 4);
+  
+  return {
+    id: item.id,
+    promptHe: item.hebrew || '',
+    promptEn: item.example || item.english,
+    answer: item.english,
+    options,
+    ttsPrompt: item.example || item.english, // For flashcards, speak the English word
+    ttsOnCorrect: item.english,
+    topic: item.topic,
+    level: item.level,
+  };
+};
 
 export const buildSessionQueue = (
   items: VocabItem[],
@@ -179,7 +214,7 @@ export const buildLevelSession = (
   
   if (level.kind === 'math') {
     // Use math problems
-    const questionItems = buildNumbersItems('math');
+    const questionItems = buildMathItems(size);
     if (questionItems.length === 0) {
       throw new Error('No math problems available for this level');
     }

@@ -10,6 +10,9 @@ export interface VocabItem {
   english: string;
   example: string;
   transliteration?: string;
+  options?: string[];
+  ttsPrompt?: string;
+  ttsOnCorrect?: string;
 }
 
 export interface ItemStats {

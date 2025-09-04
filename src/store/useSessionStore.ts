@@ -2,10 +2,13 @@ import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { debounce } from 'lodash';
-import type { VocabItem, ItemStats, PlayerProgress, Topic } from '../features/vocab/types';
+
+// Bump data version to clear old cached data
+const DATA_VERSION = '2.0.0';
+import type { VocabItem, ItemStats, PlayerProgress, Topic, Level } from '../features/vocab/types';
 import type { SessionQueue, SessionItem } from '../features/adaptive/session';
 import { loadVocab, getVocabByTopic } from '../features/vocab/repo';
-import { buildSessionQueue, getNextItem, advanceQueue, isSessionComplete, buildLevelSession, advanceLevelQueue, isLevelSessionComplete } from '../features/adaptive/session';
+import { buildSessionQueue, getNextItem, advanceQueue, isSessionComplete, buildLevelSession, advanceLevelQueue, isLevelSessionComplete, buildQuizItem } from '../features/adaptive/session';
 import type { LevelSessionQueue } from '../features/adaptive/session';
 import { updateSRS, difficultyFrom, initialStatsFor } from '../features/adaptive/srs';
 import { BASIC_TOPICS, ADVANCED_TOPICS } from '../features/vocab/topics';
@@ -118,7 +121,30 @@ export const useSessionStore = create<SessionState>()(
         const topicItems = topic ? getVocabByTopic(topic) : items;
         const queue = buildSessionQueue(topicItems, statsMap, size);
         
-        set({ sessionQueue: queue });
+        // Convert session items to quiz items with options
+        const quizItems = queue.items.map(sessionItem => 
+          buildQuizItem(sessionItem.item, items)
+        );
+        
+        const quizQueue = {
+          ...queue,
+          items: quizItems.map((quizItem, index) => ({
+            item: {
+              id: quizItem.id,
+              topic: quizItem.topic as Topic,
+              level: quizItem.level as Level,
+              hebrew: quizItem.promptHe,
+              english: quizItem.answer,
+              example: quizItem.promptEn || '',
+              options: quizItem.options,
+              ttsPrompt: quizItem.ttsPrompt,
+              ttsOnCorrect: quizItem.ttsOnCorrect,
+            },
+            stats: queue.items[index].stats,
+          }))
+        };
+        
+        set({ sessionQueue: quizQueue });
       },
 
       answer: (itemId, isCorrect, latencyMs) => {
@@ -356,7 +382,7 @@ export const useSessionStore = create<SessionState>()(
       },
     }),
     {
-      name: 'session-store',
+      name: `session-store-${DATA_VERSION}`,
       storage: createJSONStorage(() => AsyncStorage),
       partialize: (state) => ({
         statsMap: state.statsMap,
@@ -377,3 +403,15 @@ export const useSessionStore = create<SessionState>()(
     }
   )
 );
+
+// Dev action to clear storage
+export const clearStorage = async () => {
+  if (__DEV__) {
+    try {
+      await AsyncStorage.clear();
+      console.log('Storage cleared for data version', DATA_VERSION);
+    } catch (error) {
+      console.error('Failed to clear storage:', error);
+    }
+  }
+};
